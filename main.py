@@ -9,6 +9,7 @@ fs = FlightSearch()
 
 
 sheet_data = dm.get_data()
+users_data = dm.get_users()
 
 # No longer nee to use this, as the code are now updated.
 def update_codes():
@@ -24,7 +25,20 @@ def find_flights():
         cheapest_flight = fs.find_flights(location["iataCode"])
         try:
             if cheapest_flight.price < location["lowestPrice"]:
-                nm.send_email(message=f"Subject: Cheap Flight! \n\nFlight to {cheapest_flight.destination_city} for only for {cheapest_flight.price} leaving on {cheapest_flight.out_date}!")
+                message = f"Subject: Cheap Flight! \n\nFlight to {cheapest_flight.destination_city} for only for {cheapest_flight.price} leaving on {cheapest_flight.out_date}! There are {cheapest_flight.stop_overs} stop overs!"
+                link = f"https://www.google.co.uk/flights?hl=en#flt={cheapest_flight.origin_airport}.{cheapest_flight.destination_airport}.{cheapest_flight.out_date}*{cheapest_flight.destination_airport}.{cheapest_flight.origin_airport}.{cheapest_flight.return_date}"
+                for user in users_data["users"]:
+                    nm.send_email(
+                        to_addrs = user["email"],
+                        message=f"{message}\n\n{link}"
+                        )
         except AttributeError:
             print("No flights available")
+            continue
+
+
+def add_user():
+    dm.add_user()
+
+
 find_flights()
