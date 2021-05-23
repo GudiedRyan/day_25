@@ -44,13 +44,32 @@ class FlightSearch:
         try:
             data = response.json()["data"][0]
         except IndexError:
-            print("No available flights, sorry")
-            return None
+            search_params["max_stopovers"] = 1
+            response = requests.get(url=self.url_search, params=search_params, headers=self.headers)
+            try:
+                data = response.json()["data"][0]
+                fd = FlightData(
+                    price=data['price'], 
+                    origin_city=data['route'][0]['cityFrom'], 
+                    origin_airport=data['route'][0]['flyFrom'],
+                    desintation_city=data['route'][1]["cityTo"],
+                    destination_airport=data['route'][1]["flyTo"], 
+                    out_date=data["route"][0]["local_departure"].split("T")[0], 
+                    return_date=data["route"][2]["local_departure"].split("T")[0],
+                    stop_overs=1,
+                    via_city=data["route"][0]["cityTo"]
+                )
+                return fd
+            except IndexError:
+                print("Sorry, there's no easy flight path.")
+                return None
 
         fd = FlightData(
             price=data['price'], 
-            origin_city=data['cityFrom'], 
-            desintation_city=data['cityTo'], 
+            origin_city=data['cityFrom'],
+            origin_airport=data['flyFrom'], 
+            desintation_city=data['cityTo'],
+            destination_airport=data['flyTo'], 
             out_date=data["route"][0]["local_departure"].split("T")[0], 
             return_date=data["route"][1]["local_departure"].split("T")[0]
         )
